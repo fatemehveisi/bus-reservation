@@ -1,0 +1,589 @@
+{% extends "trips/base.html" %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <h2 class="fw-bold">خرید آنلاین بلیط اتوبوس</h2>
+    </div>
+</div>
+
+
+
+
+
+<!-- اضافه کردن آیکون‌های لازم (Bootstrap Icons) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+    :root { --main-blue: #003580; } /* رنگ آبی مشابه پایانه */
+    
+    .main-search-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        padding: 20px;
+        max-width: 500px;
+        margin: 20px auto;
+        direction: rtl;
+    }
+
+    .input-row {
+        position: relative;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 12px 15px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .input-row:hover { background: #f9f9f9; }
+
+    .input-row i { color: #888; font-size: 1.2rem; }
+    
+    .label-text {
+        margin-right: 15px;
+        flex-grow: 1;
+    }
+
+    .label-text small { color: #aaa; display: block; font-size: 0.75rem; }
+    .label-text span { font-weight: bold; color: #444; }
+
+    /* دکمه جابجایی مبدا و مقصد (اون دایره کوچک سمت چپ) */
+    .swap-btn {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: white;
+        border: 1px solid #eee;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 5;
+    }
+
+    .btn-search {
+        background: var(--main-blue);
+        color: white;
+        width: 100%;
+        border: none;
+        border-radius: 12px;
+        padding: 15px;
+        font-weight: bold;
+        font-size: 1.1rem;
+        margin-top: 10px;
+    }
+
+    /* استایل مودال تمام صفحه (مثل اپلیکیشن) */
+    .full-modal {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: white; z-index: 9999;
+        display: none; /* در حالت عادی مخفی است */
+        flex-direction: column;
+    }
+</style>
+
+<div class="main-search-card">
+    <form action="/trips/search/" method="GET">
+        <!-- باکس مبدأ -->
+        <div class="input-row" onclick="openModal('origin')">
+            <i class="bi bi-geo"></i>
+            <div class="label-text">
+                <small>مبدأ</small>
+                <span id="origin-label">انتخاب شهر</span>
+                <input type="hidden" name="origin" id="origin-input">
+            </div>
+        </div>
+
+        <!-- دکمه جابجایی (ظاهری) -->
+        <div style="position: relative; height: 10px;">
+            <div class="swap-btn"><i class="bi bi-arrow-down-up" style="font-size: 0.9rem;"></i></div>
+        </div>
+
+        <!-- باکس مقصد -->
+        <div class="input-row" onclick="openModal('destination')">
+            <i class="bi bi-geo-fill"></i>
+            <div class="label-text">
+                <small>مقصد</small>
+                <span id="destination-label">انتخاب شهر</span>
+                <input type="hidden" name="destination" id="destination-input">
+            </div>
+        </div>
+
+        <!-- باکس تاریخ -->
+        <div class="form-group">
+    <label>تاریخ حرکت</label>
+    <input type="text" id="date-picker-input" class="form-control"
+           placeholder="انتخاب تاریخ" readonly>
+
+    <input type="hidden" id="date-observer" name="trip_date">
+</div>
+
+        <button type="submit" class="btn-search">جستجو</button>
+    </form>
+</div>
+
+<!-- مودال انتخاب شهر (که وقتی کلیک میکنی باز میشه) -->
+<div id="cityModal" class="full-modal">
+    <div class="p-3 border-bottom d-flex align-items-center">
+        <i class="bi bi-x-lg fs-4" onclick="closeModal()" style="cursor:pointer;"></i>
+        <h6 class="mx-auto mb-0" id="modalTitle">انتخاب شهر</h6>
+
+        </div>
+    <div class="p-3">
+        <input type="text" class="form-control mb-3" placeholder="جستجوی نام شهر...">
+        <p class="text-muted small">شهرهای پرتردد</p>
+        <div class="d-flex flex-wrap gap-2">
+            <span class="badge border text-dark p-2" onclick="selectCity('تهران')">تهران</span>
+            <span class="badge border text-dark p-2" onclick="selectCity('اصفهان')">اصفهان</span>
+            <span class="badge border text-dark p-2" onclick="selectCity('شیراز')">شیراز</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentType = '';
+
+    function openModal(type) {
+        currentType = type;
+        if(type === 'date') {
+            alert('اینجا تقویم باز خواهد شد'); 
+            return;
+        }
+        document.getElementById('modalTitle').innerText = type === 'origin' ? 'انتخاب مبدأ' : 'انتخاب مقصد';
+        document.getElementById('cityModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('cityModal').style.display = 'none';
+    }
+
+    function selectCity(name) {
+        if(currentType === 'origin') {
+            document.getElementById('origin-label').innerText = name;
+            document.getElementById('origin-input').value = name;
+        } else {
+            document.getElementById('destination-label').innerText = name;
+            document.getElementById('destination-input').value = name;
+        }
+        closeModal();
+    }
+</script>
+<style>
+    
+    .feature-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: transform 0.2s;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    }
+    .feature-text { text-align: right; flex-grow: 1; margin-right: 15px; }
+    .feature-text h6 { font-weight: bold; margin-bottom: 5px; color: #333; }
+    .feature-text p { font-size: 0.85rem; color: #777; margin-bottom: 0; }
+    .feature-icon img { width: 60px; height: auto; }
+    
+    .app-section { background-color: #fcfdff; padding: 40px 0; border-top: 1px solid #f0f4f8; }
+    .app-title { color: #002e7d; font-weight: bold; margin-bottom: 15px; }
+</style>
+
+<div class="container mt-5 mb-5">
+    <div class="row">
+        <!-- اولین سامانه -->
+        <div class="col-12">
+            <div class="feature-card">
+                <div class="feature-text">
+                    <h6>اولین سامانه خرید آنلاین بلیط اتوبوس</h6>
+                    <p>با اولین سامانه خرید آنلاین بلیط، اولین باشید.</p>
+                </div>
+                <div class="feature-icon">
+                    <i class="fas fa-bus-alt fa-3x" style="color: #002e7d;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- سفر به همه جای ایران -->
+        <div class="col-12">
+            <div class="feature-card">
+                <div class="feature-text">
+                    <h6>سفر به همه جای ایران</h6>
+                    <p>با اتوبوس می‌توانید به نقاط دور از دسترس هم دسترسی داشته باشید.</p>
+                </div>
+                <div class="feature-icon">
+                    <i class="fas fa-map-marked-alt fa-3x" style="color: #002e7d;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- استرداد آنی وجه -->
+        <div class="col-12">
+            <div class="feature-card">
+                <div class="feature-text">
+                    <h6>استرداد آنی وجه</h6>
+                    <p>شما به صورت آنلاین می‌توانید بلیط مورد نظرتان را باطل کنید.</p>
+                </div>
+                <div class="feature-icon">
+                    <i class="fas fa-wallet fa-3x" style="color: #002e7d;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- بخش اپلیکیشن پایانه -->
+<div class="app-section text-center">
+    <div class="container">
+        <h4 class="app-title">اپلیکیشن پایانه</h4>
+        <p class="text-muted">با اپلیکیشن بلیط پایانه، بلیط اتوبوس همیشه در جیب شماست.</p>
+        <div class="d-flex justify-content-center gap-2 mt-4">
+            <img src="https://trustseal.enamad.ir/Content/Images/Logo.png" style="width: 80px; opacity: 0.6;" alt="enamad">
+            <div class="bg-dark text-white p-2 rounded d-flex align-items-center px-3">
+                <i class="fab fa-google-play me-2"></i> Google Play
+            </div>
+        </div>
+    </div>
+</div>
+<!-- بخش سوالات متداول -->
+<div class="container mt-5 mb-5">
+    <h4 class="fw-bold mb-4" style="color: #002e7d;">سوالات متداول</h4>
+    
+    <div class="accordion accordion-flush" id="faqAccordion">
+        
+        <!-- سوال اول -->
+        <div class="accordion-item shadow-sm mb-3 border-0" style="border-radius: 15px; overflow: hidden;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1" style="background: white; border-radius: 15px;">
+                    حمل حیوانات خانگی در سفرهای داخلی و خارجی با اتوبوس امکان‌پذیر است؟
+                </button>
+            </h2>
+            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body text-muted">
+                    خیر، طبق قوانین سازمان راهداری، حمل هرگونه حیوان زنده در داخل اتوبوس ممنوع است.
+                </div>
+            </div>
+        </div>
+
+        <!-- سوال دوم -->
+        <div class="accordion-item shadow-sm mb-3 border-0" style="border-radius: 15px; overflow: hidden;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq2" style="background: white; border-radius: 15px;">
+                    آیا می‌توانم اطلاعات و تاریخ بلیط را پس از خرید، ویرایش کنم؟
+                </button>
+            </h2>
+            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body text-muted">
+                    امکان ویرایش مستقیم وجود ندارد. شما باید بلیط را استرداد کرده و مجدداً بلیط جدید با تاریخ یا اطلاعات صحیح خریداری کنید.
+                </div>
+            </div>
+        </div>
+
+        <!-- سوال سوم -->
+        <div class="accordion-item shadow-sm mb-3 border-0" style="border-radius: 15px; overflow: hidden;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3" style="background: white; border-radius: 15px;">
+                    استعلام بلیط اتوبوس در پایانه چگونه است؟
+                </button>
+            </h2>
+            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body text-muted">
+                    شما می‌توانید از بخش «پیگیری خرید» با وارد کردن کد ملی و شماره موبایل، وضعیت بلیط خود را مشاهده کنید.
+                </div>
+            </div>
+        </div>
+
+        <!-- سوال چهارم -->
+        <div class="accordion-item shadow-sm mb-3 border-0" style="border-radius: 15px; overflow: hidden;">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq4" style="background: white; border-radius: 15px;">
+                    آیا امکان خرید تلفنی بلیط اتوبوس وجود دارد؟
+                </button>
+            </h2>
+            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body text-muted">
+                    بله، برخی از شرکت‌های مسافربری این قابلیت را دارند، اما پیشنهاد ما خرید آنلاین برای استفاده از تخفیف‌هاست.
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .accordion-button:not(.collapsed) {
+        color: #002e7d;
+        background-color: #f8faff;
+        box-shadow: none;
+    }
+    .accordion-button::after {
+        margin-right: auto;
+        margin-left: 0;
+    }
+    .accordion-button {
+        text-align: right;
+    }
+</style>
+<!-- بخش مجله پایانه -->
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0" style="color: #002e7d;">مجله پایانه</h4>
+        <a href="#" class="text-decoration-none sm-text" style="color: #002e7d;">مشاهده همه <i class="fas fa-chevron-left ms-1" style="font-size: 0.8rem;"></i></a>
+    </div>
+
+    <!-- استفاده از overflow-auto برای ایجاد حالت اسکرول افقی در موبایل مثل عکس -->
+    <div class="d-flex flex-nowrap overflow-auto pb-4 gap-3" style="scrollbar-width: none; -ms-overflow-style: none;">
+        
+        <!-- کارت اول -->
+        <div class="card border-0 shadow-sm p-3" style="min-width: 280px; border-radius: 20px;">
+            <h6 class="fw-bold mb-3" style="line-height: 1.6;">تجربه مشاهده فرهنگ و هنر: سفر به فستیوال‌های معروف ترکیه با اتوبوس!</h6>
+            <p class="text-muted small mb-4" style="line-height: 1.8;">سفر به فستیوال‌های معروف ترکیه با اتوبوس مطمئناً جذاب خواهد بود. ترکیه سرزمینی است که در میان ...</p>
+            <div class="d-flex align-items-center text-muted small mt-auto">
+                <i class="far fa-calendar-alt me-2"></i>
+                <span>۱۴۰۴/۰۸/۱۹</span>
+            </div>
+        </div>
+
+        <!-- کارت دوم -->
+        <div class="card border-0 shadow-sm p-3" style="min-width: 280px; border-radius: 20px;">
+            <h6 class="fw-bold mb-3" style="line-height: 1.6;">سفر به جذاب‌ترین فستیوال های ارمنستان با اتوبوس</h6>
+            <p class="text-muted small mb-4" style="line-height: 1.8;">حتما از جذاب‌ترین فستیوال‌های ارمنستان با سفر اتوبوسی دیدن کنید. اگر اهل سفر و ماجراجو...</p>
+            <div class="d-flex align-items-center text-muted small mt-auto">
+                <i class="far fa-calendar-alt me-2"></i>
+                <span>۱۴۰۴/۰۸/۲۲</span>
+            </div>
+        </div>
+
+        <!-- کارت سوم -->
+        <div class="card border-0 shadow-sm p-3" style="min-width: 280px; border-radius: 20px;">
+            <h6 class="fw-bold mb-3" style="line-height: 1.6;">سفر به جاده ابریشم با اتوبوس؛ این مسیر کجاست و از کدام شهرها عبور می‌کند؟</h6>
+            <p class="text-muted small mb-4" style="line-height: 1.8;">اگر قصد دارید بدانید جاده ابریشم کجاست و آیا می‌شود امروز هم با اتوبوس در مسیر آن سفر کرد، با...</p>
+            <div class="d-flex align-items-center text-muted small mt-auto">
+                <i class="far fa-calendar-alt me-2"></i>
+                <span>۱۴۰۴/۰۹/۲۲</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* مخفی کردن نوار اسکرول برای زیبایی بیشتر */
+    .overflow-auto::-webkit-scrollbar {
+        display: none;
+    }
+    .card {
+        transition: all 0.3s ease;
+        border: 1px solid #f0f0f0 !important;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+    }
+</style>
+<!-- بخش محتوای متنی و مراحل خرید -->
+<div class="container mt-5 mb-5 pb-5">
+    <div class="row">
+        <div class="col-12" style="text-align: justify; line-height: 1.8;">
+            
+            <h4 class="fw-bold mb-3">خرید بلیط اتوبوس</h4>
+            <p class="text-muted small">
+                پایانه اولین وبسایت فروش اینترنتی بلیط اتوبوس در ایران است. معتبرترین شرکت‌های مسافربری سال‌هاست با پایانه همکاری می‌کنند. بلیط اتوبوس تمامی مسیرها را می‌توانید در سایت و 
+                <span class="text-primary fw-bold">اپلیکیشن پایانه</span> 
+                مشاهده و خریداری کنید. با خرید بلیط اتوبوس به صورت آنلاین، نیازی به چاپ کاغذی بلیط ندارید. همچنین می‌توانید تمامی اطلاعات مورد نیاز را از قبل چک کنید. جزئیات مهمی مانند قیمت بلیط اتوبوس، ظرفیت خالی سرویس‌ها، ساعت حرکت اتوبوس، اطلاعات شرکت‌های مسافربری، مدل اتوبوس (معمولی، VIP) و موارد بیشتر در سایت و اپلیکیشن پایانه ثبت شده‌اند. خرید اینترنتی بلیط اتوبوس امکان انتخاب صندلی دلخواه، مقایسه امکانات سرویس‌ها با هم و سپس خرید را در اختیار شما می‌گذارد.
+            </p>
+
+            <h5 class="fw-bold mt-5 mb-4">مراحل خرید بلیط اتوبوس:</h5>
+
+            <!-- مرحله اول -->
+            <div class="mb-4">
+                <h6 class="fw-bold">۱. انتخاب مبدا، مقصد و تاریخ موردنظر شما و فشردن دکمه "جستجو"</h6>
+                <p class="text-muted small">مبدا، مقصد و تاریخ سفر را وارد کنید و دکمه جستجو را بفشارید. لیست سرویس‌های اتوبوس نمایش داده می‌شوند.</p>
+            </div>
+
+            <!-- مرحله دوم -->
+            <div class="mb-4">
+                <h6 class="fw-bold">۲. انتخاب بهترین بلیط اتوبوس از لیست سرویس‌های اتوبوسی</h6>
+                <p class="text-muted small">از بین سرویس‌هایی که مشاهده می‌کنید با توجه به زمان دلخواه برای حرکت (روز، شب و ساعت دلخواه)، نوع و مدل اتوبوس، شرکت مسافربری و ترمینال مبدا و مقصد بلیط اتوبوس مناسب خود را انتخاب کنید.</p>
+            </div>
+
+            <!-- مرحله سوم -->
+            <div class="mb-4">
+                <h6 class="fw-bold">۳. انتخاب صندلی‌های دلخواه</h6>
+                <p class="text-muted small">
+                    صندلی مناسب تضمین راحتی شما در طول سفر هستند. در این مرحله می‌توانید صندلی یا صندلی‌های مناسب خود را از روی نقشه صندلی‌های اتوبوس انتخاب کنید. 
+                    (<a href="#" class="text-decoration-none fw-bold">"بهترین صندلی اتوبوس کجاست؟"</a> در بلاگ پایانه بخوانید.)
+                </p>
+            </div>
+
+            <!-- مرحله چهارم -->
+            <div class="mb-4">
+                <h6 class="fw-bold">۴. وارد کردن اطلاعات مسافران و پرداخت نهایی برای صدور بلیط اتوبوس</h6>
+                <p class="text-muted small">پس از انتخاب صندلی نوبت به اطلاعات مسافران (نام و نام خانوادگی، کدملی، تاریخ تولد و شماره همراه) می‌رسد. پس از پرداخت اینترنتی مبلغ، پیامک صدور بلیط به شماره شما ارسال می‌شود.</p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    h6.fw-bold {
+        color: #333;
+        margin-bottom: 10px;
+    }
+    p.text-muted {
+        margin-bottom: 20px;
+    }
+</style>
+<!-- بخش مسیرهای پرتردد -->
+<div class="container mt-5 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold mb-0" style="color: #002e7d;">مسیرهای پرتردد</h5>
+        <a href="#" class="text-decoration-none small" style="color: #002e7d;">مشاهده همه <i class="fas fa-chevron-left ms-1" style="font-size: 0.7rem;"></i></a>
+    </div>
+
+    <div class="row text-center">
+        <!-- ستون اول -->
+        <div class="col-4 mb-3">
+            <a href="#" class="text-decoration-none d-block py-2" style="color: #002e7d; font-size: 0.9rem;">ملایر به تهران</a>
+            <a href="#" class="text-decoration-none d-block py-2" style="color: #002e7d; font-size: 0.9rem;">ملایر به اصفهان</a>
+            <a href="#" class="text-decoration-none d-block py-2" style="color: #002e7d; font-size: 0.9rem;">ملایر به کرج</a>
+        </div>
+        <!-- ستون دوم -->
+        <div class="col-4 mb-3">
+            <a href="#" class="text-decoration-none d-block py-2" style="color: #002e7d; font-size: 0.9rem;">ملایر به همدان</a>
+            <a href="#" class="text-decoration-none d-block py-2" style="color: #002e7d; font-size: 0.9rem;">ملایر به اراک</a>
+            <a href="#" class="text-decoration-none d-block py-2" style="color: #002e7d; font-size: 0.9rem;">ملایر به کرمانشاه</a>
+        </div>
+        <!-- ستون سوم -->
+        <div class="col-4 mb-3">
+            <a href="#" class="text-decoration-none d-block py-2" style="color: #002e7d; font-size: 0.9rem;">ملایر به شیراز</a>
+            <a href="#" class="text-decoration-none d-block py-2" style="color: #002e7d; font-size: 0.9rem;">ملایر به تبریز</a>
+            <a href="#" class="text-decoration-none d-block py-2" style="color: #002e7d; font-size: 0.9rem;">ملایر به قم</a>
+        </div>
+    </div>
+    
+    <!-- خط جداکننده مثل عکس -->
+    <hr class="mt-4" style="border-top: 1px solid #eee;">
+</div>
+<!-- بخش فوتر نهایی و اصلاح شده - کاملا راست‌چین -->
+<div class="container mt-4 mb-5" dir="rtl">
+    
+    <div class="accordion accordion-flush" id="footerAccordion">
+        
+        <!-- آیتم اول: امکانات -->
+        <div class="accordion-item border-bottom">
+            <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button collapsed bg-white border-0 py-3 px-0 d-flex align-items-center w-100" 
+                        type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" 
+                        style="box-shadow: none !important;">
+                    <!-- تیتر در سمت راست -->
+                    <span class="fw-bold" style="color: #002e7d;">امکانات</span>
+                </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#footerAccordion">
+                <!-- اضافه کردن d-flex و flex-column برای اطمینان از راست‌چین بودن کل بلاک -->
+                <div class="accordion-body d-flex flex-column align-items-start pe-0 text-end">
+                    <ul class="list-unstyled p-0 m-0 w-100 text-end">
+                        <li class="mb-3"><a href="#" class="text-decoration-none text-muted small d-block">حریم خصوصی</a></li>
+                        <li class="mb-3"><a href="#" class="text-decoration-none text-muted small d-block">حقوق مسافر</a></li>
+                        <li class="mb-3"><a href="#" class="text-decoration-none text-muted small d-block">نقشه سایت</a></li>
+                        <li class="mb-3"><a href="#" class="text-decoration-none text-muted small d-block">اپلیکیشن پایانه</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- آیتم دوم: اطلاعات بیشتر -->
+        <div class="accordion-item border-bottom">
+            <h2 class="accordion-header" id="headingTwo">
+                <button class="accordion-button collapsed bg-white border-0 py-3 px-0 d-flex align-items-center w-100" 
+                        type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" 
+                        style="box-shadow: none !important;">
+                    <span class="fw-bold" style="color: #002e7d;">اطلاعات بیشتر</span>
+                </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#footerAccordion">
+                <div class="accordion-body d-flex flex-column align-items-start pe-0 text-end">
+                    <ul class="list-unstyled p-0 m-0 w-100 text-end">
+                        <li class="mb-3"><a href="#" class="text-decoration-none text-muted small d-block">شرکت‌های مسافربری</a></li>
+                        <li class="mb-3"><a href="#" class="text-decoration-none text-muted small d-block">درباره ما</a></li>
+                        <li class="mb-3"><a href="#" class="text-decoration-none text-muted small d-block">تماس با ما</a></li>
+                        <li class="mb-3"><a href="#" class="text-decoration-none text-muted small d-block">سوالات متداول</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- تلفن پشتیبانی -->
+    <div class="d-flex justify-content-between align-items-center mt-4 px-0" dir="rtl">
+        <span class="fw-bold small">تلفن پشتیبانی:</span>
+        <span class="text-muted small" dir="ltr">۰۲۱ - ۴۱۶۰۹۰۰۰</span>
+    </div>
+
+    <!-- شبکه‌های اجتماعی و لوگو -->
+    <div class="text-center mt-5">
+        <p class="small fw-bold mb-3">شبکه‌های اجتماعی:</p>
+        <div class="d-flex justify-content-center gap-3 fs-3 mb-4">
+            <a href="#" class="text-dark"><i class="fab fa-instagram"></i></a>
+            <a href="#" class="text-dark"><i class="fab fa-linkedin"></i></a>
+            <a href="#" class="text-dark"><i class="fab fa-x-twitter"></i></a>
+            </div>
+        <img src="https://payaneh.ir/theme/images/logo.png" alt="Payaneh Logo" style="width: 100px; opacity: 0.8;">
+        <p class="text-muted mt-3" style="font-size: 0.7rem;">
+            © تمامی حقوق مادی و معنوی این اثر متعلق به شرکت پژوهان سپند است
+        </p>
+    </div>
+</div>
+
+<script>
+  $(document).ready(function () {
+    $("#date-picker-input").pDatepicker({
+        format: 'YYYY/MM/DD',
+        autoClose: true,
+        altField: '#date-observer',
+        altFormat: 'YYYY-MM-DD'
+    });
+  });
+</script>
+
+<style>
+    /* تنظیم فلش به سمت چپِ چپ (LTL) در محیط RTL */
+    .accordion-button::after {
+        margin-right: auto !important;
+        margin-left: 0 !important;
+    }
+    
+    /* فیکس کردن تراز متن لینک‌ها به سمت راست */
+    .accordion-body ul li {
+        text-align: right !important;
+    }
+
+    .accordion-button:not(.collapsed) {
+        background-color: white !important;
+        color: #002e7d !important;
+    }
+    .accordion-button:focus {
+        box-shadow: none !important;
+    }
+
+    
+</style>
+
+{% endblock %}
