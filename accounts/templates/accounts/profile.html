@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پروفایل کاربری</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .profile-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: none;
+        }
+        .avatar-placeholder {
+            width: 90px;
+            height: 90px;
+            background-color: #e9ecef;
+            color: #6c757d;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 15px auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- هدر ساده بالای صفحه -->
+<nav class="navbar navbar-dark bg-dark mb-5">
+    <div class="container">
+        <span class="navbar-brand mb-0 h1">سیستم رزرو اتوبوس</span>
+        <a href="{% url 'accounts:logout' %}" class="btn btn-outline-danger btn-sm">خروج از حساب</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card profile-card p-4">
+                <div class="card-body text-center">
+                    
+                    <!-- آیکون کاربری -->
+                    <div class="avatar-placeholder">👤</div>
+                    
+                    <h3 class="mb-1 text-dark">{{ user.first_name }} {{ user.last_name }}</h3>
+                    <p class="text-muted small mb-4">خوش آمدید به پنل کاربری خودتان</p>
+                    
+                    <hr>
+                    
+                    <!-- اطلاعات کاربر) -->
+                    <div class="row text-start my-4">
+                        <div class="col-sm-6 mb-3">
+                            <span class="text-secondary d-block small fw-bold">نام و نام خانوادگی:</span>
+                            <span class="text-dark fs-5">{{ user.first_name }} {{ user.last_name|default:"ثبت نشده" }}</span>
+                        </div>
+                        <div class="col-sm-6 mb-3">
+                            <span class="text-secondary d-block small fw-bold">شماره موبایل (نام کاربری):</span>
+                            <span class="text-dark fs-5">{{ user.username }}</span>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    <!-- کارت کیف پول -->
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-body text-start">
+                            <h5 class="card-title text-primary">کیف پول من</h5>
+                            <p class="card-text fs-5">
+                                موجودی: {{ wallet.balance }} تومان
+                            </p>
+                        </div>
+                    </div>
+                    
+                 
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

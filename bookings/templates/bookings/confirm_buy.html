@@ -1,0 +1,538 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأیید خرید بلیت</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, #f7f9fc 0%, #e9eef7 100%);
+            min-height: 100vh;
+            color: #1f2937;
+        }
+
+        .page-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 16px 50px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #fff;
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 16px 40px rgba(37, 99, 235, 0.22);
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: "";
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.08);
+            top: -80px;
+            left: -40px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 15px;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 24px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            border: 1px solid #eef2f7;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            color: #111827;
+        }
+
+        .trip-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            padding: 14px 16px;
+        }
+
+        .info-label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .messages {
+            margin-bottom: 18px;
+        }
+
+        .message {
+            padding: 14px 16px;
+            border-radius: 14px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .message.error {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+        }
+
+        .message.success {
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+
+        .seat-layout {
+            background: linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
+            border: 1px solid #dbe7ff;
+            border-radius: 24px;
+            padding: 20px;
+        }
+
+        .bus {
+            background: #ffffff;
+            border-radius: 22px;
+            padding: 18px;
+            border: 1px solid #dbeafe;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+        }
+        .bus-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            font-size: 14px;
+            color: #475569;
+            font-weight: 700;
+        }
+
+        .driver {
+            background: #1d4ed8;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 12px;
+        }
+
+        .seat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .seat-item {
+            position: relative;
+        }
+
+        .seat-item input[type="radio"] {
+            display: none;
+        }
+
+        .seat-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 58px;
+            border-radius: 16px;
+            background: #e2e8f0;
+            color: #475569;
+            font-weight: 800;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .seat-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 18px rgba(15,23,42,0.08);
+        }
+
+        .seat-item input[type="radio"]:checked + .seat-label {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #fff;
+            border-color: #1e40af;
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.24);
+        }
+
+        .seat-item.reserved .seat-label {
+            background: #fecaca;
+            color: #991b1b;
+            cursor: not-allowed;
+            border-color: #fca5a5;
+            text-decoration: line-through;
+        }
+
+        .seat-item.reserved input {
+            display: none;
+        }
+
+        .legend {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        .legend-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .available { background: #e2e8f0; }
+        .selected { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .reserved { background: #fecaca; }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+            background: #fff;
+        }
+
+        .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+
+        .hidden-seat {
+            display: none;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid #bfdbfe;
+            margin-bottom: 20px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .summary-row:last-child {
+            margin-bottom: 0;
+            padding-top: 12px;
+            border-top: 1px solid rgba(37, 99, 235, 0.15);
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .submit-btn {
+            width: 100%;
+            border: none;
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            color: white;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 800;
+            padding: 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 12px 28px rgba(22, 163, 74, 0.25);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.99);
+        }
+
+        .balance-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #ecfdf5;
+            color: #047857;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 16px;
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 992px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .trip-info {
+                grid-template-columns: 1fr;
+            }
+
+            .seat-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="page-wrapper">
+
+    <div class="header">
+        <h1>تأیید خرید بلیت</h1>
+        <p>لطفاً صندلی خود را انتخاب کنید و اطلاعات مسافر را وارد نمایید.</p>
+    </div>
+
+    <div class="grid">
+        <!-- Left: Seat selection + form -->
+        <div class="card">
+            <div class="section-title">انتخاب صندلی و اطلاعات مسافر</div>
+
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- این را فقط برای تست جایگزین کن -->
+            <form method="post" action="/bookings/buy/{{ trip.id }}/">
+                {% csrf_token %}
+
+                <div class="seat-layout">
+                    <div class="bus">
+                        <div class="bus-top">
+                            <span>جلوی اتوبوس</span>
+                            <span class="driver">راننده</span>
+                        </div>
+
+                        <div class="seat-grid">
+                            {% for seat in total_seats_range %}
+                                {% if seat in reserved_seats %}
+                                    <div class="seat-item reserved">
+                                        <label class="seat-label">صندلی {{ seat }}</label>
+                                    </div>
+                                {% else %}
+                                    <div class="seat-item">
+                                        <input
+                                            type="radio"
+                                            id="seat{{ seat }}"
+                                            name="seat_number"
+                                            value="{{ seat }}"
+                                            {% if seat_number == seat %}checked{% endif %}
+                                        >
+                                        <label class="seat-label" for="seat{{ seat }}">
+                                            صندلی {{ seat }}
+                                        </label>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <span class="legend-box available"></span>
+                                <span>خالی</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-box selected"></span>
+                                <span>انتخاب‌شده</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-box reserved"></span>
+                                <span>رزرو شده</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <br>
+
+                <div class="form-group">
+                    <label for="full_name" class="form-label">نام و نام خانوادگی</label>
+                    <input
+                        type="text"
+                        id="full_name"
+                        name="full_name"
+                        class="form-control"
+                        
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="national_code" class="form-label">کد ملی</label>
+                    <input
+                        type="text"
+                        id="national_code"
+                        name="national_code"
+                        class="form-control"
+                        placeholder="کد ملی ۱۰ رقمی"
+                        maxlength="10"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="submit-btn">پرداخت از کیف پول و ثبت بلیت</button>
+            </form>
+
+            <a href="javascript:history.back()" class="back-link">← بازگشت</a>
+        </div>
+
+        <!-- Right: Trip summary -->
+        <div class="card">
+            <div class="section-title">خلاصه سفر</div>
+
+            <div class="trip-info">
+                <div class="info-box">
+                    <div class="info-label">مبدأ</div>
+                    <div class="info-value">{{ trip.origin }}</div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-label">مقصد</div>
+                    <div class="info-value">{{ trip.destination }}</div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-label">تاریخ حرکت</div>
+                    <div class="info-value">{{ trip.departure_datetime }}</div>
+                </div>
+
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span>قیمت بلیط</span>
+                    <span>{{ price }} تومان</span>
+                </div>
+                <div class="summary-row">
+                    <span>موجودی کیف پول</span>
+                    <span class="balance-badge">{{ balance }} تومان</span>
+                </div>
+                <div class="summary-row">
+                    <span id="selected-seat-count">0</span>
+                </div>
+            </div>
+
+            <p style="font-size:14px; line-height:2; color:#475569;">
+                پس از انتخاب صندلی و ثبت فرم، مبلغ از کیف پول شما کم شده و بلیت به صورت خودکار ثبت می‌شود.
+            </p>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // ۱. پیدا کردن همه دکمه‌های رادیویی صندلی‌ها
+        const radios = document.querySelectorAll('input[name="seat_number"]');
+        // ۲. پیدا کردن تگی که باید عدد را در آن نمایش دهیم
+        const countDisplay = document.getElementById("selected-seat-count");
+
+        function updateCount() {
+            // چک می‌کنیم آیا صندلی انتخاب شده یا نه
+            const isChecked = document.querySelector('input[name="seat_number"]:checked');
+            // چون رادیو باتن است، یا ۰ است یا ۱
+            countDisplay.textContent = isChecked ? "1" : "0";
+        }
+
+        // ۳. گوش دادن به تغییرات هر صندلی
+        radios.forEach(radio => {
+            radio.addEventListener("change", updateCount);
+        });
+    });
+</script>
+</body>
+</html>
+        

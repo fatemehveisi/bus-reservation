@@ -29,12 +29,26 @@
     </style>
 </head>
 <body>
+    
 
     <nav class="navbar navbar-dark mb-0" style="background-color: #002e7d;">
         <div class="container">
             <a class="navbar-brand fw-bold" href="/">پایانه</a>
         </div>
     </nav>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container d-flex justify-content-between align-items-center">
+
+        <div class="d-flex gap-2">
+            {% if user.is_authenticated %}
+                <a href="{% url 'accounts:profile' %}" class="btn btn-success btn-sm">پروفایل من</a>
+                <a href="{% url 'accounts:logout' %}" class="btn btn-danger btn-sm">خروج</a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="btn btn-light btn-sm">ورود / ثبت‌نام</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
 
     <!-- جای نمایش محتوای صفحات دیگر -->
     {% block content %}

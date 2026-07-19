@@ -1,0 +1,140 @@
+{% extends 'trips/base.html' %}
+{% load static %}
+{% block content %}
+
+
+<style>
+    /* استایل کارت‌های سفر */
+.trip-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* سایه نرم */
+    border: 1px solid #f0f0f0;
+}
+
+/* بخش اطلاعات اتوبوس و ساعت */
+.card-header-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.departure-time {
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: #0c2b64; /* رنگ سورمه‌ای */
+}
+
+.bus-info {
+    text-align: left;
+}
+
+.bus-name {
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+.bus-type {
+    font-size: 0.75rem;
+    color: #666;
+}
+
+/* خط مسیر (مبدا به مقصد) */
+.route-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 15px 0;
+    color: #333;
+}
+
+.final-dest-badge {
+    background-color: #f1f1f1;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: #555;
+    text-align: center;
+    display: inline-block;
+    margin-top: 8px;
+}
+
+/* بخش قیمت و صندلی */
+.card-footer-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #f9f9f9;
+    padding-top: 12px;
+    margin-top: 10px;
+}
+
+.price-text {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #222;
+}
+
+.seats-badge {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #d32f2f; /* قرمز برای صندلی کم */
+}
+</style>
+{% for trip in trips %}
+<div class="card mb-3 shadow-sm border-0" style="border-radius: 15px;">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <!-- ستون زمان و نام تعاونی -->
+            <div class="col-md-3 border-start text-center">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <i class="bi bi-clock me-2"></i>
+                    <h4 class="fw-bold mb-0">{{ trip.departure_datetime|date:"H:i" }}</h4>
+                </div>
+                <p class="text-muted small">رویال سفر ایرانیان</p>
+            </div>
+
+            <!-- ستون مسیر (مبدأ به مقصد) -->
+            <div class="col-md-6 text-center">
+                <div class="d-flex justify-content-between align-items-center px-4">
+                    <div>
+                        <h6 class="fw-bold">{{ trip.origin.name }}</h6>
+                        <small class="text-muted">پایانه جنوب</small>
+                    </div>
+                    
+                    <div class="flex-grow-1 mx-3 position-relative">
+                        <hr>
+                        <i class="bi bi-bus-front position-absolute top-50 start-50 translate-middle bg-white px-2 text-primary"></i>
+                    </div>
+
+                    <div>
+                        <h6 class="fw-bold">{{ trip.destination.name }}</h6>
+                        <small class="text-muted">پایانه کاوه</small>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="text-success small fw-bold">
+                        <i class="bi bi-check-circle-fill"></i> {{ trip.available_seats }} صندلی خالی
+                    </span>
+                </div>
+            </div>
+
+            <!-- ستون قیمت و دکمه رزرو -->
+            <div class="col-md-3 text-center border-end">
+                <h5 class="text-primary fw-bold mb-3">{{ trip.price }} <small class="text-muted" style="font-size: 0.7em;">تومان</small></h5>
+                
+                <!-- لینک به صفحه رزرو یا اجرای تابع رزرو -->
+                <a href="{% url 'bookings:buy_ticket' trip.id %}" class="btn btn-warning w-100 rounded-pill fw-bold">
+                    رزرو و خرید
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="alert alert-info text-center">متأسفانه سفری برای این تاریخ و مسیر پیدا نشد.</div>
+{% endfor %}
+{% endblock %}

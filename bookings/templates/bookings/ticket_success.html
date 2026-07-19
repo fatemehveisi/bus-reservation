@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>خرید موفق بلیط</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Tahoma, sans-serif;
+            background: linear-gradient(135deg, #e0f7fa, #f1f8ff);
+            padding: 40px;
+        }
+
+        .success-container {
+            max-width: 700px;
+            margin: auto;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            overflow: hidden;
+        }
+
+        .success-header {
+            background: linear-gradient(135deg, #28a745, #43c463);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .success-header h1 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .success-header p {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .ticket-body {
+            padding: 30px;
+        }
+
+        .ticket-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #eee;
+        }
+
+        .info-box strong {
+            display: block;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .info-box span {
+            font-size: 18px;
+            color: #111;
+            font-weight: bold;
+        }
+
+        .barcode {
+            margin-top: 30px;
+            text-align: center;
+            padding: 20px;
+            background: #fafafa;
+            border-top: 2px dashed #ccc;
+        }
+
+        .barcode-code {
+            font-size: 28px;
+            letter-spacing: 4px;
+            font-weight: bold;
+            color: #222;
+        }
+
+        .buttons {
+            margin-top: 25px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            text-decoration: none;
+            background: #007bff;
+            color: white;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+        }
+
+        .btn-print {
+            background: #28a745;
+        }
+
+        .btn-print:hover {
+            background: #1f7f35;
+        }
+    </style>
+</head>
+<body>
+
+<div class="success-container">
+    <div class="success-header">
+        <h1>✅ خرید بلیط با موفقیت انجام شد</h1>
+        <p>رزرو شما ثبت شد و اطلاعات بلیط در ادامه نمایش داده می‌شود.</p>
+    </div>
+
+    <div class="ticket-body">
+        <div class="ticket-info">
+            <div class="info-box">
+                <strong>نام مسافر</strong>
+                <span>{{ ticket.full_name }}</span>
+            </div>
+
+            <div class="info-box">
+                <strong>شماره صندلی</strong>
+                <span>{{ ticket.seat_number }}</span>
+            </div>
+
+            <div class="info-box">
+                <strong>مبدا</strong>
+                <span>{{ ticket.trip.origin }}</span>
+            </div>
+
+            <div class="info-box">
+                <strong>مقصد</strong>
+                <span>{{ ticket.trip.destination }}</span>
+            </div>
+
+            <div class="info-box">
+                <strong>تاریخ حرکت</strong>
+                <span>{{ ticket.trip.departure_datetime|date:"Y-m-d" }}</span>
+            </div>
+
+            <div class="info-box">
+                <strong>ساعت حرکت</strong>
+                <span>{{ ticket.trip.departure_datetime|date:"H:i" }}</span>
+            </div>
+
+            <div class="info-box">
+                <strong>مبلغ پرداخت‌شده</strong>
+                <span>{{ ticket.booking.payment.amount }} تومان</span>
+            </div>
+
+            <div class="info-box">
+                <strong>وضعیت پرداخت</strong>
+                <span>پرداخت موفق</span>
+            </div>
+        </div>
+        <div class="barcode">
+            <p>کد رهگیری / شماره بلیط</p>
+            <div class="barcode-code">#{{ ticket.id }}{{ ticket.seat_number }}</div>
+        </div>
+
+        <div class="buttons">
+            <a href="{% url 'accounts:profile' %}" class="btn btn-primary">بازگشت به صفحه پروفایل</a>
+            <a href="javascript:window.print()" class="btn btn-print">چاپ بلیط</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,5 +1,5 @@
 {% extends "trips/base.html" %}
-
+{% load static %}
 {% block content %}
 <div class="hero-section">
     <div class="container">
@@ -90,63 +90,89 @@
     }
 </style>
 
-<div class="main-search-card">
-    <form action="/trips/search/" method="GET">
-        <!-- باکس مبدأ -->
-        <div class="input-row" onclick="openModal('origin')">
-            <i class="bi bi-geo"></i>
-            <div class="label-text">
-                <small>مبدأ</small>
-                <span id="origin-label">انتخاب شهر</span>
-                <input type="hidden" name="origin" id="origin-input">
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <!-- محدود کردن عرض باکس به col-md-5 برای شبیه شدن به عکس -->
+        <div class="col-12 col-md-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                
+                <div class="card-body p-4">
+                    <form method="GET" action="{% url 'trips:trip_results' %}">
+                        
+                        <!-- فیلد مبدا -->
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small">مبدا</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-start-0"><i class="bi bi-geo-alt"></i></span>
+                                <select name="origin_id" class="form-select border-end-0 bg-light">
+                                    <option value="">انتخاب شهر</option>
+                                    {% for city in cities %}
+                                        <option value="{{ city.id }}">{{ city.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- فیلد مقصد -->
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small">مقصد</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-start-0"><i class="bi bi-pin-map-fill"></i></span>
+                                <select name="destination_id" class="form-select border-end-0 bg-light">
+                                    <option value="">انتخاب شهر</option>
+                                    {% for city in cities %}
+                                        <option value="{{ city.id }}">{{ city.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- تاریخ حرکت -->
+                        <div class="mb-4">
+                            <label class="form-label text-secondary small">تاریخ حرکت</label>
+                            <input type="date" name="date" class="form-control bg-light" required>
+                        </div>
+
+                        <!-- دکمه جستجو دقیقا مشابه عکس -->
+                        <button type="submit" class="btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm" style="background-color: #0047ba; border: none;">
+                            جستجو
+                        </button>
+
+                    </form>
+                </div>
             </div>
-        </div>
 
-        <!-- دکمه جابجایی (ظاهری) -->
-        <div style="position: relative; height: 10px;">
-            <div class="swap-btn"><i class="bi bi-arrow-down-up" style="font-size: 0.9rem;"></i></div>
-        </div>
-
-        <!-- باکس مقصد -->
-        <div class="input-row" onclick="openModal('destination')">
-            <i class="bi bi-geo-fill"></i>
-            <div class="label-text">
-                <small>مقصد</small>
-                <span id="destination-label">انتخاب شهر</span>
-                <input type="hidden" name="destination" id="destination-input">
+            <!-- بخش تبلیغاتی پایین باکس -->
+            <div class="mt-5 d-flex align-items-center justify-content-center text-secondary">
+                <div class="me-3">
+                    <i class="bi bi-bus-front h1"></i>
+                </div>
+                <div>
+                    <h6 class="mb-0 fw-bold">اولین سامانه خرید آنلاین بلیط اتوبوس</h6>
+                    <small>با اولین سامانه خرید آنلاین بلیط، اولین باشید.</small>
+                </div>
             </div>
-        </div>
-
-        <!-- باکس تاریخ -->
-        <div class="form-group">
-    <label>تاریخ حرکت</label>
-    <input type="text" id="date-picker-input" class="form-control"
-           placeholder="انتخاب تاریخ" readonly>
-
-    <input type="hidden" id="date-observer" name="trip_date">
-</div>
-
-        <button type="submit" class="btn-search">جستجو</button>
-    </form>
-</div>
-
-<!-- مودال انتخاب شهر (که وقتی کلیک میکنی باز میشه) -->
-<div id="cityModal" class="full-modal">
-    <div class="p-3 border-bottom d-flex align-items-center">
-        <i class="bi bi-x-lg fs-4" onclick="closeModal()" style="cursor:pointer;"></i>
-        <h6 class="mx-auto mb-0" id="modalTitle">انتخاب شهر</h6>
-
-        </div>
-    <div class="p-3">
-        <input type="text" class="form-control mb-3" placeholder="جستجوی نام شهر...">
-        <p class="text-muted small">شهرهای پرتردد</p>
-        <div class="d-flex flex-wrap gap-2">
-            <span class="badge border text-dark p-2" onclick="selectCity('تهران')">تهران</span>
-            <span class="badge border text-dark p-2" onclick="selectCity('اصفهان')">اصفهان</span>
-            <span class="badge border text-dark p-2" onclick="selectCity('شیراز')">شیراز</span>
         </div>
     </div>
 </div>
+
+<style>
+    /* برای اینکه ظاهر سایت دقیقا مثل عکس تمیز باشد */
+    body {
+        background-color: #f4f7f6;
+    }
+    .card {
+        border-radius: 20px !important;
+    }
+    .form-select, .form-control {
+        border: 1px solid #eee;
+        padding: 12px;
+    }
+</style>
+
+
+
 
 <script>
     let currentType = '';
@@ -551,6 +577,32 @@
         </p>
     </div>
 </div>
+
+<div id="auth-status" data-authenticated="{% if user.is_authenticated %}true{% else %}false{% endif %}"></div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const searchForm = document.querySelector("form");
+    const authStatus = document.getElementById("auth-status");
+    const isAuthenticated = authStatus && authStatus.dataset.authenticated === "true";
+
+    if (searchForm) {
+        searchForm.addEventListener("submit", function(event) {
+            if (!isAuthenticated) {
+                event.preventDefault();
+
+                const alertBox = document.getElementById("login-alert-box");
+                if (alertBox) {
+                    alertBox.style.display = "block";
+                }
+
+                setTimeout(function() {
+                    window.location.href = "{% url 'accounts:login' %}";
+                }, 1500);
+            }
+        });
+    }
+});
+</script>
 
 <script>
   $(document).ready(function () {

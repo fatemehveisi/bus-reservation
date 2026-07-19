@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود به سامانه</title>
+    <!-- لینک بوت‌استرپ برای ظاهر شیک -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background-color: #4a90e2;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        .btn-primary:hover {
+            background-color: #357abd;
+        }
+        .form-control {
+            border-radius: 8px;
+            padding: 11px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card p-4">
+                <div class="card-body">
+                    <h3 class="text-center mb-4 text-dark font-weight-bold">ورود به حساب کاربری</h3>
+                    
+<form method="post">
+    {% csrf_token %}
+
+    <!-- ۱. نمایش پیام‌های خطای کلی (مثل اشتباه بودن رمز یا نام کاربری) -->
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger text-center small py-2 mb-3" role="alert" style="border-radius: 8px;">
+            {% for error in form.non_field_errors %}
+                {{ error }}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- فیلد شماره موبایل -->
+    <div class="mb-3">
+        <label class="form-label text-secondary small fw-bold">نام کاربری یا شماره موبایل</label>
+        <!-- ۲. تغییر name به phone_number و اضافه کردن value -->
+        <input 
+            type="text" 
+            name="phone_number" 
+            class="form-control" 
+            placeholder="شماره موبایل خود را وارد کنید" 
+            value="{{ form.phone_number.value|default:'' }}" 
+            required
+        >
+        
+        <!-- نمایش خطای احتمالی فیلد شماره موبایل -->
+        {% if form.phone_number.errors %}
+            <div class="text-danger small mt-1">
+                {{ form.phone_number.errors }}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- فیلد رمز عبور -->
+    <div class="mb-4">
+        <label class="form-label text-secondary small fw-bold">رمز عبور</label>
+        <input 
+            type="password" 
+            name="password" 
+            class="form-control" 
+            placeholder="رمز عبور خود را وارد کنید" 
+            required
+        >
+        
+        <!-- نمایش خطای احتمالی فیلد رمز عبور -->
+        {% if form.password.errors %}
+            <div class="text-danger small mt-1">
+                {{ form.password.errors }}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- دکمه ورود -->
+    <button type="submit" class="btn btn-primary w-100 fw-bold">ورود</button>
+</form>
+                    
+                    <div class="text-center mt-4">
+                        <span class="text-muted small">حساب کاربری ندارید؟</span>
+                        <a href="{% url 'accounts:register' %}" class="text-decoration-none small fw-bold" style="color: #4a90e2;">ثبت نام کنید</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
